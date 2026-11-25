@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+	<!-- Patas -->
+	<g stroke="#1b1b1b" stroke-width="1" stroke-linecap="round" fill="none">
+		<path d="M13 14 L8 11 M13 17 L7 17 M13 20 L8 24" />
+		<path d="M19 14 L24 11 M19 17 L25 17 M19 20 L24 24" />
+	</g>
+	<!-- Alas -->
+	<ellipse cx="10" cy="20" rx="4.5" ry="8" transform="rotate(30 10 20)" fill="#cfe6f5" fill-opacity="0.75" stroke="#7a8f9c" stroke-width="0.6" />
+	<ellipse cx="22" cy="20" rx="4.5" ry="8" transform="rotate(-30 22 20)" fill="#cfe6f5" fill-opacity="0.75" stroke="#7a8f9c" stroke-width="0.6" />
+	<!-- Cuerpo -->
+	<ellipse cx="16" cy="19" rx="3.6" ry="6.5" fill="#2b2b2b" />
+	<path d="M13 18 H19 M13 21 H19" stroke="#4a4a4a" stroke-width="0.8" />
+	<!-- Tórax y cabeza -->
+	<circle cx="16" cy="12" r="3.4" fill="#333" />
+	<circle cx="16" cy="8" r="3" fill="#222" />
+	<!-- Ojos -->
+	<circle cx="14" cy="7" r="1.8" fill="#b3261e" />
+	<circle cx="18" cy="7" r="1.8" fill="#b3261e" />
+	<circle cx="13.5" cy="6.5" r="0.5" fill="#fff" />
+	<circle cx="17.5" cy="6.5" r="0.5" fill="#fff" />
+</svg>

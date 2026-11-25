@@ -1,0 +1,695 @@
+---
+const poses = [
+	{ id: 'up', label: 'Estirada', value: -1, thumb: '/frog_animation_image/ezgif-frame-059.jpg' },
+	{ id: 'rest', label: 'Reposo', value: 0, thumb: '/frog_animation_image/ezgif-frame-001.jpg' },
+	{ id: 'down', label: 'Agachada', value: 1, thumb: '/frog_animation_image/ezgif-frame-100.jpg' },
+];
+---
+
+<main id="stage">
+	<header class="bar">
+		<a href="/" class="logo">frog<span>.</span></a>
+		<nav>
+			<a href="#poses" data-egg="how">Cómo funciona</a>
+			<a href="#" class="outline" data-egg="code">Ver código</a>
+		</nav>
+	</header>
+
+	<section class="hero">
+		<div class="copy">
+			<p class="eyebrow"><span></span>Experimento interactivo · 01</p>
+			<h1>Frog<br /><em>animation</em></h1>
+			<p class="lede">
+				Mueve la mosca arriba y abajo. La rana se estira para alcanzarla o se agacha para esconderse,
+				fotograma a fotograma.
+			</p>
+			<div class="actions">
+				<a href="#poses" class="cta" data-egg="made">
+					Cómo está hecho
+					<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7"></path></svg>
+				</a>
+				<span class="hint">
+					<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="3" width="10" height="18" rx="5"></rect><path d="M12 7v3"></path></svg>
+					Prueba moviendo el cursor
+				</span>
+			</div>
+		</div>
+
+		<div class="visual">
+			<p id="bubble" role="status" aria-live="polite" hidden></p>
+			<div class="splat">
+				<img id="frog" src="/frog_animation_image/ezgif-frame-001.jpg" alt="Rana de juguete verde que reacciona al cursor" />
+			</div>
+			<div id="poses" role="group" aria-label="Pose de la rana">
+				{
+					poses.map((p) => (
+						<button type="button" data-pose={p.id} data-value={p.value} aria-pressed={p.id === 'rest' ? 'true' : 'false'}>
+							<img src={p.thumb} alt="" width="56" height="56" />
+							<span>{p.label}</span>
+						</button>
+					))
+				}
+			</div>
+		</div>
+	</section>
+
+	<footer>
+		<span>Astro · pointer-frames</span>
+		<span>59 + 16 fotogramas · eje Y</span>
+	</footer>
+
+	<canvas id="trail" aria-hidden="true"></canvas>
+	<img id="fly" src="/fly-cursor.svg" alt="" aria-hidden="true" width="32" height="32" />
+</main>
+
+<style>
+	#stage {
+		--ink: #1e3a17;
+		--ink-soft: #43523d;
+		--ground: #dce9cc;
+		--chip: #c8dcb0;
+
+		min-height: 100dvh;
+		display: flex;
+		flex-direction: column;
+		background: var(--ground) url('/pattern-prints.svg') 0 0 / 260px;
+		color: var(--ink);
+		font-family: Inter, system-ui, sans-serif;
+		overflow: hidden;
+		/* Hotspot en la cabeza de la mosca. Es el respaldo: con ratón el script
+		   oculta el cursor y dibuja una mosca que se orienta y deja estela. */
+		cursor: url('/fly-cursor.svg') 16 7, auto;
+	}
+
+	#stage.has-fly,
+	#stage.has-fly * {
+		cursor: none;
+	}
+
+	#trail,
+	#fly {
+		position: fixed;
+		top: 0;
+		left: 0;
+		pointer-events: none;
+		z-index: 10;
+	}
+
+	#trail {
+		width: 100vw;
+		height: 100vh;
+	}
+
+	#fly {
+		display: none;
+		/* Gira sobre la cabeza, que es el punto que marca el puntero */
+		transform-origin: 16px 7px;
+		will-change: transform;
+	}
+
+	#stage.has-fly #fly {
+		display: block;
+	}
+
+	a {
+		color: var(--ink);
+		text-decoration: none;
+	}
+
+	.bar,
+	.hero,
+	footer {
+		width: 100%;
+		max-width: 1280px;
+		margin: 0 auto;
+		box-sizing: border-box;
+		padding-inline: 32px;
+	}
+
+	.bar {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 16px;
+		align-items: center;
+		justify-content: space-between;
+		padding-block: 28px;
+	}
+
+	.logo {
+		font-family: 'Bricolage Grotesque', sans-serif;
+		font-weight: 800;
+		font-size: 22px;
+		letter-spacing: -0.02em;
+	}
+
+	.logo span {
+		color: #5c8f35;
+	}
+
+	nav {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px;
+		font-size: 15px;
+		font-weight: 500;
+	}
+
+	nav a {
+		padding: 12px 14px;
+	}
+
+	nav a.outline {
+		padding-inline: 18px;
+		border: 1.5px solid var(--ink);
+		border-radius: 999px;
+	}
+
+	.hero {
+		flex: 1;
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 24px 48px;
+		padding-block: 8px 32px;
+	}
+
+	.copy {
+		flex: 1 1 440px;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 28px;
+	}
+
+	.eyebrow {
+		margin: 0;
+		align-self: flex-start;
+		display: inline-flex;
+		align-items: center;
+		gap: 10px;
+		padding: 8px 14px;
+		border-radius: 999px;
+		background: var(--chip);
+		font-size: 13px;
+		font-weight: 600;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+	}
+
+	.eyebrow span {
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+		background: #3f7a22;
+	}
+
+	h1 {
+		margin: 0;
+		font-family: 'Bricolage Grotesque', sans-serif;
+		font-weight: 800;
+		font-size: clamp(96px, 15vw, 216px);
+		line-height: 0.84;
+		letter-spacing: -0.045em;
+	}
+
+	h1 em {
+		font-weight: 500;
+		font-size: 0.42em;
+		letter-spacing: -0.03em;
+		color: #3f6b2a;
+	}
+
+	.lede {
+		margin: 0;
+		max-width: 30em;
+		font-size: 19px;
+		line-height: 1.55;
+		color: var(--ink-soft);
+	}
+
+	.actions {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 12px 20px;
+	}
+
+	.cta {
+		display: inline-flex;
+		align-items: center;
+		gap: 10px;
+		min-height: 52px;
+		padding: 0 24px;
+		border-radius: 999px;
+		background: var(--ink);
+		color: #f4f7ee;
+		font-size: 16px;
+		font-weight: 600;
+	}
+
+	.hint {
+		display: inline-flex;
+		align-items: center;
+		gap: 10px;
+		font-size: 14px;
+		color: var(--ink-soft);
+	}
+
+	.visual {
+		position: relative;
+		flex: 1 1 440px;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 20px;
+	}
+
+	/* La mancha lleva el mismo degradado vertical que el fondo de las fotos
+	   (más oscuro arriba, más claro y algo azulado abajo) para que no se note el corte. */
+	.splat {
+		width: 118%;
+		max-width: 720px;
+		margin: -4% -9% -2%;
+		aspect-ratio: 1;
+		display: flex;
+		align-items: flex-end;
+		justify-content: center;
+		background: linear-gradient(to bottom, #e7e6e8 0%, #e8e7e9 18%, #eeedf1 52%, #f0eff3 72%, #f2f2f3 100%);
+		-webkit-mask: url('/splat-mask.svg') center / contain no-repeat;
+		mask: url('/splat-mask.svg') center / contain no-repeat;
+	}
+
+	/* La rana va más pequeña que la mancha y pegada abajo: la cabeza queda dentro
+	   y las patas se cortan con el borde. */
+	#frog {
+		display: block;
+		width: 84%;
+		height: auto;
+		aspect-ratio: 1;
+		-webkit-mask-image: radial-gradient(ellipse 62% 64% at 50% 46%, #000 70%, transparent 100%);
+		mask-image: radial-gradient(ellipse 62% 64% at 50% 46%, #000 70%, transparent 100%);
+	}
+
+	/* Bocadillo de los easter eggs, encima de la cabeza de la rana */
+	#bubble {
+		position: absolute;
+		top: 2%;
+		right: 6%;
+		z-index: 2;
+		max-width: 16em;
+		margin: 0;
+		padding: 12px 16px;
+		border-radius: 18px 18px 18px 4px;
+		background: #fff;
+		color: var(--ink);
+		font-size: 15px;
+		font-weight: 600;
+		line-height: 1.35;
+		box-shadow: 0 10px 24px -12px rgba(30, 58, 23, 0.45);
+		transform-origin: 0 100%;
+		animation: pop 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+	}
+
+	#bubble[hidden] {
+		display: none;
+	}
+
+	/* "Mírame": el selector da un saltito cuando un enlace manda hacia él */
+	#poses.nudge {
+		animation: nudge 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 2;
+	}
+
+	@keyframes nudge {
+		40% {
+			transform: translateY(-8px) scale(1.04);
+		}
+	}
+
+	@keyframes pop {
+		from {
+			transform: scale(0.6);
+			opacity: 0;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		#bubble,
+		#poses.nudge {
+			animation: none;
+		}
+	}
+
+	#poses {
+		display: flex;
+		gap: 8px;
+		padding: 8px;
+		border-radius: 20px;
+		background: var(--chip);
+	}
+
+	#poses button {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 6px;
+		padding: 6px 6px 8px;
+		border: 1px solid transparent;
+		border-radius: 14px;
+		background: transparent;
+		color: #33442e;
+		font: 600 12px Inter, system-ui, sans-serif;
+		letter-spacing: 0.02em;
+		cursor: inherit;
+	}
+
+	#poses button[aria-pressed='true'] {
+		background: #fff;
+		border-color: #fff;
+		color: var(--ink);
+	}
+
+	#poses button:focus-visible {
+		outline: 2px solid var(--ink);
+		outline-offset: 2px;
+	}
+
+	#poses img {
+		display: block;
+		width: 56px;
+		height: 56px;
+		border-radius: 10px;
+		object-fit: cover;
+	}
+
+	footer {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: space-between;
+		gap: 8px 24px;
+		padding-block: 20px 28px;
+		border-top: 1px solid #c2d5aa;
+		font-size: 13px;
+		color: #5a6854;
+	}
+
+	@media (max-width: 768px) {
+		.bar,
+		.hero,
+		footer {
+			padding-inline: 16px;
+		}
+
+		.copy {
+			align-items: center;
+			text-align: center;
+		}
+
+		.eyebrow {
+			align-self: center;
+		}
+
+		.actions {
+			justify-content: center;
+		}
+	}
+</style>
+
+<script>
+	import { createPointerFrames, frameRange, pad } from 'pointer-frames';
+
+	// De las 121 imágenes originales, sólo estos dos tramos muestran a la rana
+	// moviendo el cuerpo verticalmente (se agacha / se estira). El resto del
+	// ciclo es prácticamente el mismo frame en reposo, así que se descarta.
+	const path = (n: number) => `/frog_animation_image/ezgif-frame-${pad(n, 3)}.jpg`;
+
+	const img = document.getElementById('frog') as HTMLImageElement;
+	const selector = document.getElementById('poses') as HTMLElement;
+	const buttons = [...selector.querySelectorAll<HTMLButtonElement>('button[data-pose]')];
+
+	const markPose = (value: number) => {
+		const pose = value < -0.33 ? 'up' : value > 0.33 ? 'down' : 'rest';
+		for (const b of buttons) b.setAttribute('aria-pressed', String(b.dataset.pose === pose));
+	};
+
+	const frog = createPointerFrames({
+		img,
+		negative: frameRange(path, 1, 59), // reposo -> estirada hacia arriba
+		positive: frameRange(path, 85, 100), // reposo -> agachada hacia abajo
+		axis: 'y',
+		onFrame: (_src, value) => markPose(value),
+	});
+
+	// --- Easter eggs con los botones de pose ---------------------------------
+	const bubble = document.getElementById('bubble') as HTMLElement;
+	let bubbleTimer = 0;
+
+	const say = (text: string, ms = 2600) => {
+		bubble.hidden = true;
+		// Forzar reflow para que la animación de entrada se repita cada vez.
+		void bubble.offsetWidth;
+		bubble.textContent = text;
+		bubble.hidden = false;
+		clearTimeout(bubbleTimer);
+		bubbleTimer = window.setTimeout(() => (bubble.hidden = true), ms);
+	};
+
+	const pick = <T,>(list: T[]) => list[Math.floor(Math.random() * list.length)];
+
+	// Al pulsar muchas veces el mismo botón, la rana se queja según la pose.
+	const complaints: Record<string, string[]> = {
+		up: [
+			'Más alto no llego. Soy una rana, no una jirafa.',
+			'Si me estiro más me convierto en salamandra.',
+			'Desde aquí ya veo la casa de mi abuela.',
+		],
+		rest: [
+			'Ya estoy en reposo. Es literalmente lo que mejor hago.',
+			'Modo zen activado. Ommm... croac.',
+			'¿Otra vez reposo? Me estás malacostumbrando.',
+		],
+		down: [
+			'Más abajo ya sería excavar.',
+			'Aquí abajo no hay moscas, solo pelusas.',
+			'Soy una rana, no un felpudo.',
+		],
+	};
+
+	const quips = [
+		'Croac.',
+		'Dato: las ranas no beben agua, la absorben por la piel.',
+		'Acepto pagos en moscas.',
+		'Este portfolio tiene 75 fotogramas de mí. De nada.',
+		'¿Sabías que algunas ranas pueden saltar 20 veces su tamaño?',
+	];
+
+	let history: string[] = [];
+	let lastClick = 0;
+	let clicks = 0;
+	let flies = 0;
+	let dancing = false;
+
+	const dance = () => {
+		dancing = true;
+		say('♪ Croac, croac, ra-na-dance ♪', 3200);
+		const steps = [-1, 1, -1, 1, -1, 1, -1, 1, 0];
+		steps.forEach((v, i) =>
+			setTimeout(() => {
+				frog.setTarget(v);
+				if (i === steps.length - 1) dancing = false;
+			}, i * 340),
+		);
+	};
+
+	const eatFly = () => {
+		flies += 1;
+		frog.setTarget(-1);
+		setTimeout(() => frog.setTarget(0), 500);
+		say(flies === 1 ? '¡Ñam! Mosca nº 1. Perdón, era tu cursor.' : `¡Ñam! Ya van ${flies} moscas.`);
+		// Si la mosca dibujada está activa, desaparece un momento.
+		const fly = document.getElementById('fly');
+		if (fly) {
+			fly.style.visibility = 'hidden';
+			setTimeout(() => (fly.style.visibility = ''), 1800);
+		}
+	};
+
+	const onPose = (pose: string) => {
+		const now = performance.now();
+		// Las combinaciones sólo cuentan si se pulsan seguidas.
+		if (now - lastClick > 1500) history = [];
+		lastClick = now;
+		history = [...history, pose].slice(-5);
+		clicks += 1;
+
+		const seq = history.join(',');
+		if (seq.endsWith('up,up,down,down')) {
+			history = [];
+			eatFly();
+		} else if (seq.endsWith('up,down,up,down')) {
+			history = [];
+			dance();
+		} else if (history.length === 5 && history.every((p) => p === pose)) {
+			history = [];
+			say(pick(complaints[pose]));
+		} else if (clicks % 12 === 0) {
+			say(pick(quips));
+		}
+	};
+
+	// Enlaces de la cabecera y del hero: cada clic saca la siguiente frase; la
+	// última se repite. "Cómo está hecho" acaba soltando la pista del ↑↑↓↓.
+	const linkLines: Record<string, string[]> = {
+		how: [
+			'Fácil: miro tu mosca y elijo entre 75 fotos de mí misma.',
+			'Arriba me estiro, abajo me agacho. Ciencia de charca.',
+			'Prueba los botones de abajo. Con ganas.',
+		],
+		made: [
+			'Con Astro, 75 fotogramas y mucha paciencia. Y moscas.',
+			'Un paquete propio, pointer-frames, decide qué foto toca.',
+			'¿Otra vez? Bueno, te cuento un secreto...',
+			'Pulsa abajo: Estirada, Estirada, Agachada, Agachada.',
+			'Y si alternas Estirada y Agachada... bailo.',
+		],
+		code: [
+			'¿Código? Yo solo sé croar.',
+			"git commit -m 'croac'",
+			'Mi código es 100 % orgánico, criado en charca.',
+			'404: rana no encontrada. Ah, no, aquí estoy.',
+			'Vale, vale. Pronto habrá enlace al repo. Lo prometo por mis ancas.',
+		],
+	};
+	const linkClicks: Record<string, number> = {};
+
+	const nudge = () => {
+		selector.classList.remove('nudge');
+		void selector.offsetWidth;
+		selector.classList.add('nudge');
+	};
+	selector.addEventListener('animationend', () => selector.classList.remove('nudge'));
+
+	for (const link of document.querySelectorAll<HTMLAnchorElement>('a[data-egg]')) {
+		const egg = link.dataset.egg!;
+		link.addEventListener('click', (e) => {
+			// Mientras "Ver código" no tenga URL real, la broma sustituye a la navegación.
+			if (link.getAttribute('href') === '#') e.preventDefault();
+			const lines = linkLines[egg];
+			const n = linkClicks[egg] ?? 0;
+			linkClicks[egg] = n + 1;
+			say(lines[Math.min(n, lines.length - 1)], 3400);
+
+			if (egg === 'code') {
+				// Se agacha avergonzada y vuelve.
+				frog.setTarget(1);
+				setTimeout(() => frog.setTarget(0), 900);
+			} else {
+				nudge();
+			}
+		});
+	}
+
+	for (const b of buttons) {
+		b.addEventListener('click', () => {
+			if (dancing) return;
+			frog.setTarget(Number(b.dataset.value));
+			onPose(b.dataset.pose!);
+		});
+	}
+
+	// Mientras el puntero está sobre el selector no llega a `window`, así la
+	// pose elegida con un botón no se pisa al moverse entre ellos.
+	selector.addEventListener('pointermove', (e) => e.stopPropagation());
+
+	// Mosca: sólo con ratón y sin `prefers-reduced-motion`; si no, queda el
+	// cursor SVG de CSS. Mira hacia donde vuela y deja una estela punteada.
+	const stage = document.getElementById('stage') as HTMLElement;
+	const fly = document.getElementById('fly') as HTMLImageElement;
+	const trail = document.getElementById('trail') as HTMLCanvasElement;
+	const ctx = trail.getContext('2d');
+
+	const finePointer = matchMedia('(pointer: fine)').matches;
+	const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+	if (ctx && finePointer && !reducedMotion) {
+		stage.classList.add('has-fly');
+
+		const TRAIL_MS = 700;
+		const points: { x: number; y: number; t: number }[] = [];
+		let x = -100;
+		let y = -100;
+		let angle = 0;
+		let targetAngle = 0;
+		let raf = 0;
+
+		const resize = () => {
+			const dpr = window.devicePixelRatio || 1;
+			trail.width = innerWidth * dpr;
+			trail.height = innerHeight * dpr;
+			ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+		};
+		resize();
+		window.addEventListener('resize', resize);
+
+		const draw = (now: number) => {
+			while (points.length && now - points[0].t > TRAIL_MS) points.shift();
+
+			// Gira por el camino más corto para no dar vueltas de 360°.
+			let diff = targetAngle - angle;
+			diff = Math.atan2(Math.sin(diff), Math.cos(diff));
+			angle += diff * 0.25;
+			fly.style.transform = `translate(${x - 16}px, ${y - 7}px) rotate(${angle}rad)`;
+
+			ctx.clearRect(0, 0, innerWidth, innerHeight);
+			ctx.lineWidth = 1.5;
+			ctx.lineCap = 'round';
+			ctx.setLineDash([2, 6]);
+			// Cada tramo se pinta aparte para que se desvanezca con la edad; el
+			// offset acumulado mantiene el punteado continuo entre tramos.
+			let dist = 0;
+			for (let i = 1; i < points.length; i++) {
+				const a = points[i - 1];
+				const b = points[i];
+				const life = 1 - (now - b.t) / TRAIL_MS;
+				ctx.strokeStyle = `rgba(30, 58, 23, ${0.55 * life})`;
+				ctx.lineDashOffset = -dist;
+				ctx.beginPath();
+				ctx.moveTo(a.x, a.y);
+				ctx.lineTo(b.x, b.y);
+				ctx.stroke();
+				dist += Math.hypot(b.x - a.x, b.y - a.y);
+			}
+
+			raf = points.length > 1 || Math.abs(diff) > 0.001 ? requestAnimationFrame(draw) : 0;
+		};
+
+		const wake = () => {
+			if (!raf) raf = requestAnimationFrame(draw);
+		};
+
+		window.addEventListener(
+			'pointermove',
+			(e) => {
+				if (e.pointerType !== 'mouse') return;
+				const dx = e.clientX - x;
+				const dy = e.clientY - y;
+				// Con movimientos mínimos la dirección es ruido: se mantiene la anterior.
+				if (Math.hypot(dx, dy) > 2) targetAngle = Math.atan2(dy, dx) + Math.PI / 2;
+				x = e.clientX;
+				y = e.clientY;
+				// La estela sale de la cola, no de la cabeza.
+				const tail = 12;
+				points.push({ x: x - Math.sin(angle) * tail, y: y + Math.cos(angle) * tail, t: performance.now() });
+				fly.style.opacity = '1';
+				wake();
+			},
+			// En captura, para seguir recibiendo el movimiento sobre el selector
+			// de poses, que lo corta en la fase de burbuja.
+			{ passive: true, capture: true },
+		);
+
+		document.addEventListener('pointerout', (e) => {
+			if (!e.relatedTarget) fly.style.opacity = '0';
+		});
+	}
+</script>

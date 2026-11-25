@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="260" height="260" viewBox="0 0 260 260">
+	<defs>
+		<!-- Huella de rana: palma y cuatro dedos largos con la punta redonda, mirando hacia arriba -->
+		<g id="print" fill="#c7dbae" stroke="#c7dbae" stroke-linecap="round">
+			<ellipse cx="0" cy="5" rx="3.4" ry="4.4" stroke="none" />
+			<path d="M0 3 L-9 -5 M0 2 L-3.5 -9 M0 2 L3.5 -9 M0 3 L9 -5" stroke-width="2.2" fill="none" />
+			<circle cx="-9" cy="-5" r="2.3" stroke="none" />
+			<circle cx="-3.5" cy="-9" r="2.3" stroke="none" />
+			<circle cx="3.5" cy="-9" r="2.3" stroke="none" />
+			<circle cx="9" cy="-5" r="2.3" stroke="none" />
+		</g>
+	</defs>
+	<!-- Dos rastros en diagonal; cada paso es un par de huellas (izquierda / derecha) -->
+	<use href="#print" transform="translate(40 214) rotate(38)" />
+	<use href="#print" transform="translate(62 202) rotate(48) scale(0.85)" />
+	<use href="#print" transform="translate(92 168) rotate(40)" />
+	<use href="#print" transform="translate(114 156) rotate(50) scale(0.85)" />
+	<use href="#print" transform="translate(160 70) rotate(-30) scale(0.9)" />
+	<use href="#print" transform="translate(182 78) rotate(-20) scale(0.75)" />
+	<use href="#print" transform="translate(210 30) rotate(-34) scale(0.9)" />
+	<use href="#print" transform="translate(232 38) rotate(-24) scale(0.75)" />
+</svg>
